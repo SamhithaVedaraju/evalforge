@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evalforge"
+version = "0.1.0"
+description = "Regression testing and guardrails for LLM apps: YAML test suites, LLM-as-judge, hallucination and prompt-injection checks, CI-ready reports."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Samhitha" }]
+keywords = ["llm", "evaluation", "testing", "guardrails", "rag", "ci"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Software Development :: Testing",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = ["pyyaml>=6.0", "jsonschema>=4.0"]
+
+[project.optional-dependencies]
+anthropic = ["anthropic>=0.40"]
+openai = ["openai>=1.0"]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+evalforge = "evalforge.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]

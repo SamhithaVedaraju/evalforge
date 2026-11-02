@@ -1,0 +1,50 @@
+name: evalforge
+description: Run an evalforge LLM test suite and fail the job on regressions.
+branding:
+  icon: check-circle
+  color: purple
+
+inputs:
+  suite:
+    description: Path to the suite YAML file.
+    required: true
+  baseline:
+    description: Optional JSON results file to compare against; any test that passed there and fails now fails the job.
+    required: false
+    default: ""
+  args:
+    description: Extra arguments for `evalforge run`.
+    required: false
+    default: ""
+  extras:
+    description: Optional pip extras to install, e.g. "anthropic" or "anthropic,openai".
+    required: false
+    default: ""
+  python-version:
+    required: false
+    default: "3.12"
+
+outputs:
+  report:
+    description: Path to the HTML report.
+    value: evalforge-report.html
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+    - shell: bash
+      run: |
+        if [ -n "${{ inputs.extras }}" ]; then
+          pip install "${{ github.action_path }}[${{ inputs.extras }}]"
+        else
+          pip install "${{ github.action_path }}"
+        fi
+    - shell: bash
+      run: |
+        baseline=()
+        if [ -n "${{ inputs.baseline }}" ]; then baseline=(--baseline "${{ inputs.baseline }}"); fi
+        evalforge run "${{ inputs.suite }}" -o evalforge-results.json --html evalforge-report.html \
+          --junit evalforge-junit.xml "${baseline[@]}" ${{ inputs.args }}

@@ -1,0 +1,14 @@
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.venv/
+build/
+dist/
+# run outputs
+report.html
+baseline.json
+v2.json
+junit.xml
+evalforge-*.json
+evalforge-*.html
+evalforge-*.xml

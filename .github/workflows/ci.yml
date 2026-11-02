@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+
+  eval:
+    # Dogfood: run the example suite the way a user would in their own repo.
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Evaluate support bot (v1)
+        run: evalforge run examples/support_bot/suite.yaml -o baseline.json --html report.html --junit junit.xml
+      - name: Regression gate catches a bad prompt change (v2)
+        env:
+          SUPPORT_BOT_VERSION: "2"
+        run: |
+          if evalforge run examples/support_bot/suite.yaml -q --baseline baseline.json --threshold 0; then
+            echo "expected regressions to be detected" && exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evalforge-report
+          path: |
+            report.html
+            junit.xml
+            baseline.json
